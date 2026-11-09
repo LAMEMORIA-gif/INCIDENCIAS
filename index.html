@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Incidencias · App de guardia</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#e08a4b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Incidencias">
+<style>
+:root{--bg:#10141b;--panel:#1a212c;--panel2:#212a37;--borde:#2c3444;--tx:#e8ecf1;--mut:#8b95a6;--acc:#e08a4b;--verde:#3fb950;--amar:#e3b341;--rojo:#f0554a;--azul:#4f8fd6}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:40px}
+header{position:sticky;top:0;z-index:5;background:#0c0f14;border-bottom:1px solid var(--borde);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+header h1{margin:0;font-size:17px}header small{color:var(--mut);display:block;font-size:12px}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--borde)}
+.pill.pend{color:var(--amar);border-color:#6b5a1f;background:rgba(227,179,65,.12)}.pill.ok{color:var(--verde);border-color:#245a2e;background:rgba(63,185,80,.12)}
+main{max-width:760px;margin:0 auto;padding:14px}
+.card{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:15px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px}
+label b{color:var(--rojo)}
+input,select,textarea{background:var(--panel2);color:var(--tx);border:1px solid var(--borde);border-radius:9px;padding:11px 12px;font:inherit;font-size:16px;text-transform:none;letter-spacing:0;width:100%}
+textarea{min-height:84px;resize:vertical}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{background:var(--acc);color:#1b1206;border:0;border-radius:10px;padding:13px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.sec{background:var(--panel2);color:var(--tx);border:1px solid var(--borde)}.btn.peligro{background:transparent;color:var(--rojo);border:1px solid #5a2a27}
+.btn.mini{padding:7px 11px;font-size:13px}.btn:disabled{opacity:.5}
+.barra{display:flex;flex-wrap:wrap;gap:8px}
+.barra .btn{flex:1 1 auto}
+.reg{border:1px solid var(--borde);border-radius:10px;padding:11px 12px;margin-bottom:9px;background:var(--panel2)}
+.reg .t{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-weight:600}
+.reg .s{color:var(--mut);font-size:13px;margin-top:3px}.reg .d{margin-top:6px;font-size:14px;white-space:pre-wrap}
+.reg .a{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.nota{color:var(--mut);font-size:13px}.vacio{color:var(--mut);text-align:center;padding:18px}
+.msg{padding:10px 12px;border-radius:9px;margin-top:10px;font-size:14px}.msg.ok{background:rgba(63,185,80,.14);color:#8fe09b}.msg.mal{background:rgba(240,85,74,.15);color:#ff9d95}
+#vForm{display:none}
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 12px}
+.foto{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;border:1px solid var(--borde);background:var(--panel2)}.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto button{position:absolute;top:3px;right:3px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:15px;line-height:1}
+.bf{display:flex;align-items:center;justify-content:center;gap:6px;border:1px dashed #4a5568;border-radius:10px;padding:12px;color:var(--tx);background:var(--panel2);font-weight:600;cursor:pointer;margin-bottom:6px}
+.bf input{display:none}h3.sec{margin:14px 0 8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid var(--borde);padding-bottom:5px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--borde);background:var(--panel2);color:var(--mut);font:inherit;font-weight:600}.tabs button.on{color:var(--tx);border-color:var(--acc)}
+</style>
+</head>
+<body>
+<header><div><h1>⚠️ Incidencias</h1><small id="quien">App de guardia · funciona sin internet</small></div><span class="pill pend" id="cPend">0 pendientes</span></header>
+<main>
+  <section id="vLista">
+    <div class="card">
+      <h2>Mis datos</h2>
+      <div class="fila">
+        <label>Guardia que registra<input id="gNombre" list="dlGuardias" placeholder="Nombre y apellido" autocomplete="off"><datalist id="dlGuardias"></datalist></label>
+        <label>Campo<select id="gCampo"></select></label>
+      </div>
+      <p class="nota">Se guardan en este teléfono para no escribirlos cada vez.</p>
+    </div>
+    <div class="barra" style="margin-bottom:14px"><button class="btn" id="bNueva" style="font-size:16px">+ Registrar incidencia</button></div>
+    <div class="card">
+      <h2>Enviar al supervisor</h2>
+      <p class="nota" id="resumenEnvio"></p>
+      <div class="barra">
+        <button class="btn" id="bExpPend">⬇ Exportar pendientes</button>
+        <button class="btn sec" id="bExpTodo">Exportar todas</button>
+        <button class="btn sec" id="bComp">📤 Compartir</button>
+      </div>
+      <p class="nota">Se genera un archivo .json. Envíelo al supervisor (por ejemplo por WhatsApp) y él lo carga en el sistema de seguridad. Lo ya exportado se marca como enviado.</p>
+      <div id="msgEnvio"></div>
+    </div>
+    <div class="tabs"><button id="tPend" class="on">Pendientes</button><button id="tTodo">Todas</button></div>
+    <div id="lista"></div>
+  </section>
+
+  <section id="vForm">
+    <div class="card">
+      <h2 id="fTit">Registrar incidencia</h2>
+      <div class="fila">
+        <label>Campo <b>*</b><select id="fCampo"></select></label>
+        <label>Departamento <b>*</b><select id="fDepto"></select></label>
+      </div>
+      <label id="lSub" style="display:none">Subcategoría de Previsión Social<select id="fSub"><option value="">Sin subcategoría</option><option>Galeras Palomas</option><option>Galeras Empaque</option></select></label>
+      <div class="fila">
+        <label>Fecha de detección <b>*</b><input type="date" id="fFecha"></label>
+        <label>Fecha de aviso <b>*</b><input type="date" id="fAviso"></label>
+      </div>
+      <div class="fila">
+        <label>Hora del reporte<input type="time" id="fHoraRep"></label>
+        <label>Hora de llegada de Seguridad<input type="time" id="fHoraLleg"></label>
+      </div>
+      <div class="fila">
+        <label>Estatus <b>*</b><select id="fEstatus"><option>En proceso</option><option>Se vinculo al área responsable</option><option>Concluido</option></select></label>
+        <label>Fecha de solución<input type="date" id="fSol"></label>
+      </div>
+      <label>Catálogo de problema <b>*</b><select id="fCat"></select></label>
+      <div id="bNuevoCat" style="display:none">
+        <div class="fila">
+          <label>Nombre del nuevo catálogo <b>*</b><input id="fCatNuevo" placeholder="Ej. FaltaRegla"></label>
+          <label>Peso de riesgo <b>*</b><select id="fPeso"><option value="">— elija —</option><option value="2">2 · Bajo</option><option value="3">3 · Medio</option><option value="4">4 · Alto</option><option value="5">5 · Crítico</option></select></label>
+        </div>
+      </div>
+      <label>Descripción del hecho <b>*</b><textarea id="fDesc" placeholder="Describa brevemente la incidencia…"></textarea></label>
+      <label>Atención y/o solución<input id="fSolTxt" placeholder="Ej. llamado de atención, desalojo, convenio…"></label>
+      <h3 class="sec">Ficha de trabajo y fotos</h3>
+      <label>Ficha(s) del involucrado<input id="fFicha" inputmode="numeric" placeholder="Ej. 1297-1 (puede escribir varias separadas por coma)"></label>
+      <label class="bf">📷 Foto de la ficha de trabajo<input type="file" id="inFicha" accept="image/*" capture="environment" multiple></label>
+      <div class="fotos" id="grFicha"></div>
+      <label class="bf">📷 Fotos de evidencia<input type="file" id="inEvid" accept="image/*" capture="environment" multiple></label>
+      <div class="fotos" id="grEvid"></div>
+      <p class="nota" id="notaFotos">Las fotos se reducen automáticamente para que el archivo no pese demasiado (máx. 4 de la ficha y 6 de evidencia).</p>
+      <label>Apoyo de la autoridad<select id="fApoyo"><option value="">Sin dato / detectar</option><option value="N">Sin apoyo de la autoridad</option><option value="M">Policía municipal</option><option value="G">Guardia civil estatal</option><option value="MG">Policía municipal y guardia civil</option></select></label>
+      <div id="msgForm"></div>
+      <div class="barra"><button class="btn sec" id="bCancelar">Cancelar</button><button class="btn" id="bGuardar">Guardar incidencia</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+var CAMPOS = ['Palomas', 'El Milagro Uno', 'El Milagro Dos', 'El Milagro Tres', 'Santa Fe', 'Empaque'];
+var DEPTOS = ['Almacén General', 'Empaque', 'Labores', 'Mantenimiento', 'Plagas', 'Previsión Social', 'RH', 'Producción', 'Riego', 'Nóminas', 'Inocuidad', 'Seguridad'];
+// catálogo de problema y peso de riesgo (2 bajo · 3 medio · 4 alto · 5 crítico)
+var CATALOGO = [
+  ['venta y distribuccion de drogas', 'Venta y distribución de drogas', 5], ['Crimen', 'Crimen', 5], ['AcoSex', 'Acoso sexual', 5], ['Suicidio', 'Intento de suicidio', 5],
+  ['ViolenFam', 'Violencia familiar', 4], ['RoboComb', 'Robo de combustible', 4], ['RoboFruta', 'Robo de fruta', 4], ['ConsumDrogasCuarto', 'Consumo de drogas', 4], ['Riñas', 'Riña', 4],
+  ['IntroAlcohol', 'Introducción de alcohol', 3], ['Vandalismo', 'Vandalismo', 3], ['Discuy/o pleito entre personal', 'Discusión o pleito entre personal', 3], ['AlteraOrden', 'Alteración del orden', 3], ['sinselloscajas', 'Cajas sin sellos', 3],
+  ['FaltaRegla', 'Falta al reglamento', 2], ['RoboPrendas', 'Robo de prendas', 2], ['ExcesoVeloc', 'Exceso de velocidad', 2], ['Auto Robo', 'Auto robo', 2]
+];
+var $ = function (s) { return document.querySelector(s); };
+var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+var p2 = function (n) { return String(n).padStart(2, '0'); };
+var hoy = function () { var d = new Date(); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); };
+var fmtF = function (s) { return s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) : '—'; };
+
+// ---------- base de datos local (IndexedDB) ----------
+var DB = null, REGS = [], editId = null, filtro = 'pend', FOTOS = [];
+var MAXF = { ficha: 4, evidencia: 6 };
+function abrirDB() {
+  return new Promise(function (ok, no) {
+    var q = indexedDB.open('incidencias_guardia_db', 1);
+    q.onupgradeneeded = function () { q.result.createObjectStore('inc', { keyPath: 'id' }); };
+    q.onsuccess = function () { DB = q.result; ok(); }; q.onerror = function () { no(q.error); };
+  });
+}
+function tx(modo) { return DB.transaction('inc', modo).objectStore('inc'); }
+function cargar() { return new Promise(function (ok) { var r = tx('readonly').getAll(); r.onsuccess = function () { REGS = r.result.sort(function (a, b) { return b.creado - a.creado; }); ok(); }; }); }
+function poner(o) { return new Promise(function (ok, no) { var r = tx('readwrite').put(o); r.onsuccess = ok; r.onerror = function () { no(r.error); }; }); }
+function borrar(id) { return new Promise(function (ok) { var r = tx('readwrite').delete(id); r.onsuccess = ok; }); }
+
+// ---------- ajustes del guardia ----------
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } }
+function guardias() { try { return JSON.parse(ls('inc_guardias') || '[]'); } catch (e) { return []; } }
+function recordarGuardia(n) { n = n.trim(); if (!n) return; var l = guardias().filter(function (x) { return x !== n; }); l.unshift(n); ls('inc_guardias', JSON.stringify(l.slice(0, 30))); }
+
+function llenarSelect(el, lista, vacio) { el.innerHTML = (vacio ? '<option value="">' + vacio + '</option>' : '') + lista.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join(''); }
+function iniciarCombos() {
+  llenarSelect($('#gCampo'), CAMPOS); llenarSelect($('#fCampo'), CAMPOS); llenarSelect($('#fDepto'), DEPTOS);
+  $('#fCat').innerHTML = '<option value="">— Seleccione —</option>' + CATALOGO.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[1]) + ' · peso ' + c[2] + '</option>'; }).join('') + '<option value="__nuevo">Otro (catálogo nuevo)…</option>';
+  $('#dlGuardias').innerHTML = guardias().map(function (g) { return '<option value="' + esc(g) + '">'; }).join('');
+  $('#gNombre').value = ls('inc_guardia'); if (ls('inc_campo')) $('#gCampo').value = ls('inc_campo');
+}
+
+// ---------- lista ----------
+function dibujar() {
+  var pend = REGS.filter(function (r) { return !r.exportado; });
+  $('#cPend').textContent = pend.length + (pend.length === 1 ? ' pendiente' : ' pendientes'); $('#cPend').className = 'pill ' + (pend.length ? 'pend' : 'ok');
+  $('#resumenEnvio').textContent = pend.length ? 'Tiene ' + pend.length + ' incidencia(s) sin enviar al supervisor.' : (REGS.length ? 'Todo lo registrado ya fue exportado.' : 'Aún no hay incidencias registradas en este teléfono.');
+  $('#tPend').className = filtro === 'pend' ? 'on' : ''; $('#tTodo').className = filtro === 'todo' ? 'on' : '';
+  var l = filtro === 'pend' ? pend : REGS;
+  $('#lista').innerHTML = l.length ? l.map(function (r) {
+    var c = CATALOGO.filter(function (x) { return x[0] === r.cat; })[0];
+    return '<div class="reg"><div class="t"><span>' + esc(c ? c[1] : r.cat) + '</span><span class="pill ' + (r.exportado ? 'ok' : 'pend') + '">' + (r.exportado ? '✅ Enviado' : '🟡 Pendiente') + '</span></div>' +
+      '<div class="s">' + fmtF(r.fecha) + ' · ' + esc(r.campo) + ' · ' + esc(r.depto) + (r.subcat ? ' · ' + esc(r.subcat) : '') + ' · ' + esc(r.estatus) + '</div>' +
+      '<div class="d">' + esc(r.desc) + '</div>' + (r.ficha || (r.fotos || []).length ? '<div class="s">' + (r.ficha ? 'Ficha: ' + esc(r.ficha) + ' · ' : '') + '📷 ' + (r.fotos || []).length + ' foto(s)</div>' : '') + '<div class="a"><button class="btn sec mini" data-e="' + r.id + '">Editar</button><button class="btn peligro mini" data-b="' + r.id + '">Eliminar</button></div></div>';
+  }).join('') : '<div class="vacio">' + (filtro === 'pend' ? 'No hay incidencias pendientes.' : 'Sin incidencias.') + '</div>';
+  Array.prototype.forEach.call(document.querySelectorAll('[data-e]'), function (b) { b.onclick = function () { abrirForm(b.dataset.e); }; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-b]'), function (b) { b.onclick = function () { if (confirm('¿Eliminar esta incidencia de este teléfono?')) borrar(b.dataset.b).then(cargar).then(dibujar); }; });
+}
+
+
+// ---------- fotos (se comprimen en el teléfono) ----------
+function comprimir(file) {
+  return new Promise(function (ok, no) {
+    var fr = new FileReader();
+    fr.onerror = function () { no(fr.error); };
+    fr.onload = function () {
+      var im = new Image(); im.onerror = function () { no(new Error('imagen')); };
+      im.onload = function () {
+        var M = 1280, w = im.width, h = im.height, k = Math.min(1, M / Math.max(w, h)); w = Math.round(w * k); h = Math.round(h * k);
+        var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(im, 0, 0, w, h); ok(c.toDataURL('image/jpeg', 0.68));
+      }; im.src = fr.result;
+    }; fr.readAsDataURL(file);
+  });
+}
+function dibujarFotos() {
+  ['ficha', 'evidencia'].forEach(function (t) {
+    var el = $(t === 'ficha' ? '#grFicha' : '#grEvid');
+    el.innerHTML = FOTOS.map(function (f, i) { return f.tipo === t ? '<div class="foto"><img src="' + f.data + '"><button type="button" data-q="' + i + '" aria-label="Quitar">×</button></div>' : ''; }).join('');
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { FOTOS.splice(+b.dataset.q, 1); dibujarFotos(); }; });
+}
+async function agregarFotos(tipo, input) {
+  var files = Array.prototype.slice.call(input.files || []); input.value = '';
+  for (var i = 0; i < files.length; i++) {
+    if (FOTOS.filter(function (f) { return f.tipo === tipo; }).length >= MAXF[tipo]) { aviso($('#msgForm'), 'Máximo ' + MAXF[tipo] + ' fotos de ' + (tipo === 'ficha' ? 'la ficha' : 'evidencia') + '.', 1); break; }
+    try { FOTOS.push({ tipo: tipo, data: await comprimir(files[i]), ts: Date.now() }); } catch (e) { aviso($('#msgForm'), 'No se pudo leer una de las fotos.', 1); }
+  }
+  dibujarFotos();
+}
+
+// ---------- formulario ----------
+function mostrarSub() { $('#lSub').style.display = $('#fDepto').value === 'Previsión Social' ? '' : 'none'; }
+function mostrarCatNuevo() { $('#bNuevoCat').style.display = $('#fCat').value === '__nuevo' ? '' : 'none'; }
+function abrirForm(id) {
+  editId = id || null; var r = id ? REGS.filter(function (x) { return x.id === id; })[0] : null;
+  $('#fTit').textContent = r ? 'Editar incidencia' : 'Registrar incidencia'; $('#msgForm').innerHTML = '';
+  $('#fCampo').value = r ? r.campo : $('#gCampo').value; $('#fDepto').value = r ? r.depto : DEPTOS[0]; $('#fSub').value = r ? (r.subcat || '') : '';
+  $('#fFecha').value = r ? r.fecha : hoy(); $('#fAviso').value = r ? r.fAviso : hoy(); $('#fHoraRep').value = r ? (r.horaRep || '') : ''; $('#fHoraLleg').value = r ? (r.horaLleg || '') : '';
+  $('#fEstatus').value = r ? r.estatus : 'En proceso'; $('#fSol').value = r ? (r.fSol || '') : '';
+  var enCat = r && CATALOGO.some(function (c) { return c[0] === r.cat; });
+  $('#fCat').value = r ? (enCat ? r.cat : '__nuevo') : ''; $('#fCatNuevo').value = r && !enCat ? r.cat : ''; $('#fPeso').value = r && !enCat ? String(r.peso || '') : '';
+  $('#fDesc').value = r ? r.desc : ''; $('#fFicha').value = r ? (r.ficha || '') : ''; FOTOS = r && r.fotos ? r.fotos.slice() : []; dibujarFotos(); $('#fSolTxt').value = r ? (r.sol || '') : ''; $('#fApoyo').value = r ? (r.apoyo || '') : '';
+  mostrarSub(); mostrarCatNuevo();
+  $('#vLista').style.display = 'none'; $('#vForm').style.display = 'block'; window.scrollTo(0, 0);
+}
+function cerrarForm() { $('#vForm').style.display = 'none'; $('#vLista').style.display = 'block'; window.scrollTo(0, 0); }
+function aviso(el, t, mal) { el.innerHTML = '<div class="msg ' + (mal ? 'mal' : 'ok') + '">' + esc(t) + '</div>'; }
+async function guardar() {
+  var guardia = $('#gNombre').value.trim();
+  if (!guardia) { aviso($('#msgForm'), 'Escriba primero el nombre del guardia en "Mis datos" (pantalla anterior).', 1); return; }
+  var cat = $('#fCat').value, peso = 0;
+  if (cat === '__nuevo') { cat = $('#fCatNuevo').value.trim(); peso = +$('#fPeso').value; if (!cat || !peso) { aviso($('#msgForm'), 'Para un catálogo nuevo escriba el nombre y elija el peso de riesgo.', 1); return; } }
+  else if (cat) peso = CATALOGO.filter(function (c) { return c[0] === cat; })[0][2];
+  var o = { campo: $('#fCampo').value, depto: $('#fDepto').value, subcat: $('#fDepto').value === 'Previsión Social' ? $('#fSub').value : '', fecha: $('#fFecha').value, fAviso: $('#fAviso').value,
+    horaRep: $('#fHoraRep').value, horaLleg: $('#fHoraLleg').value, estatus: $('#fEstatus').value, fSol: $('#fSol').value, cat: cat, peso: peso, desc: $('#fDesc').value.trim(), sol: $('#fSolTxt').value.trim(), apoyo: $('#fApoyo').value, guardia: guardia, ficha: $('#fFicha').value.trim(), fotos: FOTOS.slice() };
+  if (!o.campo || !o.depto || !o.fecha || !o.fAviso || !o.cat || !o.desc) { aviso($('#msgForm'), 'Complete los campos marcados con * (incluida la descripción del hecho).', 1); return; }
+  if (o.fSol && o.fSol < o.fecha) { aviso($('#msgForm'), 'La fecha de solución no puede ser anterior a la fecha de detección.', 1); return; }
+  var base = editId ? REGS.filter(function (x) { return x.id === editId; })[0] : null;
+  o.id = base ? base.id : 'own_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); o.creado = base ? base.creado : Date.now(); o.editado = base ? Date.now() : undefined;
+  o.exportado = false; o.tsExportado = null; // si se corrige, vuelve a quedar pendiente para enviarse otra vez
+  await poner(o); recordarGuardia(guardia); ls('inc_guardia', guardia); await cargar(); cerrarForm(); dibujar();
+}
+
+// ---------- exportar ----------
+function aFormatoSistema(r) {
+  return { cat: r.cat, fecha: r.fecha, f_aviso: r.fAviso, f_sol: r.fSol || '', horaRep: r.horaRep || '', horaLleg: r.horaLleg || '', campo: r.campo, depto: r.depto, subcat: r.subcat || '', desc: r.desc, sol: r.sol || '',
+    estatus: r.estatus, peso: r.peso, apoyoManual: r.apoyo || '', guardia: r.guardia || '', ficha: r.ficha || '', fotos: (r.fotos || []).map(function (f) { return { tipo: f.tipo, data: f.data }; }), _own: true, _ownId: r.id };
+}
+function nombreArchivo(lista) {
+  var cs = {}; lista.forEach(function (r) { cs[r.campo] = 1; }); var k = Object.keys(cs), d = new Date();
+  return 'incidencias_' + (k.length === 1 ? k[0].replace(/\s+/g, '_') : 'varios_campos') + '_' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '_' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.json';
+}
+function construirArchivo(todas) {
+  var l = todas ? REGS.slice() : REGS.filter(function (r) { return !r.exportado; });
+  if (!l.length) return null;
+  // se divide en partes de ~9 MB para que WhatsApp y el correo no rechacen el archivo cuando hay muchas fotos
+  var partes = [], act = [], peso = 0;
+  l.forEach(function (r) { var o = aFormatoSistema(r), n = JSON.stringify(o).length; if (act.length && peso + n > 9e6) { partes.push(act); act = []; peso = 0; } act.push({ o: o, r: r }); peso += n; });
+  if (act.length) partes.push(act);
+  var base = nombreArchivo(l).replace(/\.json$/, '');
+  var archivos = partes.map(function (p, i) {
+    var json = JSON.stringify({ incidencias_agregadas: p.map(function (x) { return x.o; }), ediciones: {} });
+    return { lista: p.map(function (x) { return x.r; }), nombre: base + (partes.length > 1 ? '_parte' + (i + 1) + 'de' + partes.length : '') + '.json', blob: new Blob([json], { type: 'application/json' }) };
+  });
+  return { lista: l, archivos: archivos };
+}
+async function marcarExportadas(lista) { for (var i = 0; i < lista.length; i++) { lista[i].exportado = true; lista[i].tsExportado = Date.now(); await poner(lista[i]); } await cargar(); dibujar(); }
+function descargar(a) { var u = URL.createObjectURL(a.blob), l = document.createElement('a'); l.href = u; l.download = a.nombre; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 6000); }
+async function exportar(todas) {
+  var a = construirArchivo(todas); if (!a) { aviso($('#msgEnvio'), todas ? 'No hay incidencias para exportar.' : 'No hay incidencias pendientes. Use "Exportar todas" si necesita repetir el archivo.', 1); return; }
+  for (var i = 0; i < a.archivos.length; i++) { descargar(a.archivos[i]); await new Promise(function (r) { setTimeout(r, 600); }); }
+  await marcarExportadas(a.lista); aviso($('#msgEnvio'), a.archivos.length + ' archivo(s) generado(s) con ' + a.lista.length + ' incidencia(s): ' + a.archivos.map(function (x) { return x.nombre; }).join(', ') + '. Envíelos al supervisor.');
+}
+async function compartir() {
+  var a = construirArchivo(false) || construirArchivo(true); if (!a) { aviso($('#msgEnvio'), 'No hay incidencias para compartir.', 1); return; }
+  var fs = a.archivos.map(function (x) { return new File([x.blob], x.nombre, { type: 'application/json' }); });
+  if (navigator.canShare && navigator.canShare({ files: fs })) {
+    try { await navigator.share({ files: fs, title: 'Incidencias', text: 'Incidencias registradas (' + a.lista.length + ')' }); await marcarExportadas(a.lista.filter(function (r) { return !r.exportado; })); aviso($('#msgEnvio'), 'Archivo compartido.'); }
+    catch (e) { if (e && e.name !== 'AbortError') aviso($('#msgEnvio'), 'No se pudo compartir; use "Exportar pendientes".', 1); }
+  } else aviso($('#msgEnvio'), 'Este teléfono no permite compartir archivos desde aquí. Use "Exportar pendientes" y envíe el archivo descargado.', 1);
+}
+
+// ---------- arranque ----------
+$('#bNueva').onclick = function () { if (!$('#gNombre').value.trim()) { $('#gNombre').focus(); aviso($('#msgEnvio'), 'Escriba su nombre en "Mis datos" antes de registrar.', 1); return; } ls('inc_guardia', $('#gNombre').value.trim()); ls('inc_campo', $('#gCampo').value); abrirForm(); };
+$('#gCampo').onchange = function () { ls('inc_campo', $('#gCampo').value); };
+$('#inFicha').onchange = function () { agregarFotos('ficha', this); }; $('#inEvid').onchange = function () { agregarFotos('evidencia', this); };
+$('#bCancelar').onclick = cerrarForm; $('#bGuardar').onclick = guardar; $('#fDepto').onchange = mostrarSub; $('#fCat').onchange = mostrarCatNuevo;
+$('#bExpPend').onclick = function () { exportar(false); }; $('#bExpTodo').onclick = function () { exportar(true); }; $('#bComp').onclick = compartir;
+$('#tPend').onclick = function () { filtro = 'pend'; dibujar(); }; $('#tTodo').onclick = function () { filtro = 'todo'; dibujar(); };
+abrirDB().then(cargar).then(function () { iniciarCombos(); dibujar(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { });
+</script>
+</body>
+</html>
