@@ -44,7 +44,7 @@ textarea{min-height:84px;resize:vertical}
 .foto{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;border:1px solid var(--borde);background:var(--panel2)}.foto img{width:100%;height:100%;object-fit:cover;display:block}
 .foto button{position:absolute;top:3px;right:3px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:15px;line-height:1}
 .bf{display:flex;align-items:center;justify-content:center;gap:6px;border:1px dashed #4a5568;border-radius:10px;padding:12px;color:var(--tx);background:var(--panel2);font-weight:600;cursor:pointer;margin-bottom:6px}
-.bf input{display:none}h3.sec{margin:14px 0 8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid var(--borde);padding-bottom:5px}
+.bf input{display:none}.dosb{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dosb .bf{font-size:13px;padding:12px 6px;text-align:center}h3.sec{margin:14px 0 8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid var(--borde);padding-bottom:5px}
 .tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--borde);background:var(--panel2);color:var(--mut);font:inherit;font-weight:600}.tabs button.on{color:var(--tx);border-color:var(--acc)}
 </style>
 </head>
@@ -107,9 +107,9 @@ textarea{min-height:84px;resize:vertical}
       <label>Atención y/o solución<input id="fSolTxt" placeholder="Ej. llamado de atención, desalojo, convenio…"></label>
       <h3 class="sec">Ficha de trabajo y fotos</h3>
       <label>Ficha(s) del involucrado<input id="fFicha" inputmode="numeric" placeholder="Ej. 1297-1 (puede escribir varias separadas por coma)"></label>
-      <label class="bf">📷 Foto de la ficha de trabajo<input type="file" id="inFicha" accept="image/*" capture="environment" multiple></label>
+      <div class="dosb"><label class="bf">📷 Tomar foto de ficha<input type="file" id="inFicha" accept="image/*" capture="environment"></label><label class="bf">🖼️ Ficha desde galería<input type="file" id="inFichaGal" accept="image/*" multiple></label></div>
       <div class="fotos" id="grFicha"></div>
-      <label class="bf">📷 Fotos de evidencia<input type="file" id="inEvid" accept="image/*" capture="environment" multiple></label>
+      <div class="dosb"><label class="bf">📷 Tomar foto de evidencia<input type="file" id="inEvid" accept="image/*" capture="environment"></label><label class="bf">🖼️ Evidencia desde galería<input type="file" id="inEvidGal" accept="image/*" multiple></label></div>
       <div class="fotos" id="grEvid"></div>
       <p class="nota" id="notaFotos">Las fotos se reducen automáticamente para que el archivo no pese demasiado (máx. 4 de la ficha y 6 de evidencia).</p>
       <label>Apoyo de la autoridad<select id="fApoyo"><option value="">Sin dato / detectar</option><option value="N">Sin apoyo de la autoridad</option><option value="M">Policía municipal</option><option value="G">Guardia civil estatal</option><option value="MG">Policía municipal y guardia civil</option></select></label>
@@ -288,6 +288,7 @@ async function compartir() {
 $('#bNueva').onclick = function () { if (!$('#gNombre').value.trim()) { $('#gNombre').focus(); aviso($('#msgEnvio'), 'Escriba su nombre en "Mis datos" antes de registrar.', 1); return; } ls('inc_guardia', $('#gNombre').value.trim()); ls('inc_campo', $('#gCampo').value); abrirForm(); };
 $('#gCampo').onchange = function () { ls('inc_campo', $('#gCampo').value); };
 $('#inFicha').onchange = function () { agregarFotos('ficha', this); }; $('#inEvid').onchange = function () { agregarFotos('evidencia', this); };
+$('#inFichaGal').onchange = function () { agregarFotos('ficha', this); }; $('#inEvidGal').onchange = function () { agregarFotos('evidencia', this); };
 $('#bCancelar').onclick = cerrarForm; $('#bGuardar').onclick = guardar; $('#fDepto').onchange = mostrarSub; $('#fCat').onchange = mostrarCatNuevo;
 $('#bExpPend').onclick = function () { exportar(false); }; $('#bExpTodo').onclick = function () { exportar(true); }; $('#bComp').onclick = compartir;
 $('#tPend').onclick = function () { filtro = 'pend'; dibujar(); }; $('#tTodo').onclick = function () { filtro = 'todo'; dibujar(); };
