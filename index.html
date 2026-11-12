@@ -120,8 +120,47 @@ textarea{min-height:84px;resize:vertical}
 </main>
 
 <script>
+/* Catálogo oficial de campos/ubicaciones de Rancho Agrícola La Memoria y reconocimiento de abreviaturas.
+   Mismo código en el ERP y en las apps de guardia (RONDINES, CONTROL-ACCESO, INCIDENCIAS, OPERATIVO).
+   Alias: cada texto se compara sin acentos ni mayúsculas; "a+b" exige que aparezcan ambas palabras.
+   El ORDEN importa: lo más específico va primero (p. ej. Galeras Palomas antes que Campo Palomas). */
+(function (g) {
+  'use strict';
+  // Lista en el orden en que se muestra; "p" es la prioridad al reconocer (menor = se revisa primero).
+  const LISTA = [
+    { nombre: 'Campo Palomas', p: 90, alias: ['palomas', 'rlm', 'rancho la memoria', 'la memoria', 'campo rlm'] },
+    { nombre: 'Galeras Palomas', p: 2, alias: ['galeras+palomas', 'galera+palomas', 'galeras+rlm', 'galera+rlm', 'galeras+rancho'] },
+    { nombre: 'Almacén General', p: 4, alias: ['almacen general', 'almacen gral', 'alm general', 'alm gral', 'almacen', 'almacenes', 'ag', 'a g'] },
+    { nombre: 'Empaque', p: 80, alias: ['empaque', 'empacadora'] },
+    { nombre: 'Galeras Empaque', p: 3, alias: ['galeras+empaque', 'galera+empaque', 'empaque+galeras', 'empaque+galera', 'galeras', 'galera'] },
+    { nombre: 'Campo Santa Fe', p: 70, alias: ['santa fe', 'santafe', 'sta fe'] },
+    { nombre: 'Campo El Milagro Uno', p: 7, alias: ['milagro uno', 'milagro 1', 'milagro i', 'milagro1', 'milagro'] },
+    { nombre: 'Campo El Milagro Dos', p: 6, alias: ['milagro dos', 'milagro 2', 'milagro ii', 'milagro2'] },
+    { nombre: 'Campo El Milagro Tres', p: 5, alias: ['milagro tres', 'milagro 3', 'milagro iii', 'milagro3'] },
+    { nombre: 'Almacén El Milagro Uno', p: 1, alias: ['almacen+milagro', 'alm+milagro', 'bodega+milagro'] }
+  ];
+
+  const norm = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  function coincide(n, alias) {
+    return String(alias).split('+').every(p => n.includes(' ' + norm(p) + ' '));
+  }
+  // Devuelve el nombre oficial o '' si no se reconoce. 'lista' permite usar una lista personalizada (misma forma).
+  function oficial(txt, lista) {
+    const n = ' ' + norm(txt) + ' ';
+    if (n.trim() === '') return '';
+    const orden = (lista || LISTA).slice().sort((a, b) => (a.p == null ? 50 : a.p) - (b.p == null ? 50 : b.p));
+    for (const c of orden) {
+      if (coincide(n, c.nombre)) return c.nombre;
+      for (const a of (c.alias || [])) if (coincide(n, a)) return c.nombre;
+    }
+    return '';
+  }
+  g.CAMPOS_LM = { lista: LISTA, nombres: LISTA.map(c => c.nombre), oficial, norm };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
 'use strict';
-var CAMPOS = ['Palomas', 'El Milagro Uno', 'El Milagro Dos', 'El Milagro Tres', 'Santa Fe', 'Empaque'];
+var CAMPOS = CAMPOS_LM.nombres.slice(); // lista oficial; los guardias solo eligen de la lista desplegable
 var DEPTOS = ['Almacén General', 'Empaque', 'Labores', 'Mantenimiento', 'Plagas', 'Previsión Social', 'RH', 'Producción', 'Riego', 'Nóminas', 'Inocuidad', 'Seguridad'];
 // catálogo de problema y peso de riesgo (2 bajo · 3 medio · 4 alto · 5 crítico)
 var CATALOGO = [
@@ -161,7 +200,7 @@ function iniciarCombos() {
   llenarSelect($('#gCampo'), CAMPOS); llenarSelect($('#fCampo'), CAMPOS); llenarSelect($('#fDepto'), DEPTOS);
   $('#fCat').innerHTML = '<option value="">— Seleccione —</option>' + CATALOGO.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[1]) + ' · peso ' + c[2] + '</option>'; }).join('') + '<option value="__nuevo">Otro (catálogo nuevo)…</option>';
   $('#dlGuardias').innerHTML = guardias().map(function (g) { return '<option value="' + esc(g) + '">'; }).join('');
-  $('#gNombre').value = ls('inc_guardia'); if (ls('inc_campo')) $('#gCampo').value = ls('inc_campo');
+  $('#gNombre').value = ls('inc_guardia'); if (ls('inc_campo')) $('#gCampo').value = CAMPOS_LM.oficial(ls('inc_campo')) || CAMPOS[0];
 }
 
 // ---------- lista ----------
@@ -292,7 +331,7 @@ $('#inFichaGal').onchange = function () { agregarFotos('ficha', this); }; $('#in
 $('#bCancelar').onclick = cerrarForm; $('#bGuardar').onclick = guardar; $('#fDepto').onchange = mostrarSub; $('#fCat').onchange = mostrarCatNuevo;
 $('#bExpPend').onclick = function () { exportar(false); }; $('#bExpTodo').onclick = function () { exportar(true); }; $('#bComp').onclick = compartir;
 $('#tPend').onclick = function () { filtro = 'pend'; dibujar(); }; $('#tTodo').onclick = function () { filtro = 'todo'; dibujar(); };
-abrirDB().then(cargar).then(function () { iniciarCombos(); dibujar(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); });
+abrirDB().then(cargar).then(async function () { for (var i = 0; i < REGS.length; i++) { var o = CAMPOS_LM.oficial(REGS[i].campo); if (o && o !== REGS[i].campo) { REGS[i].campo = o; await poner(REGS[i]); } } iniciarCombos(); dibujar(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { });
 </script>
 </body>
